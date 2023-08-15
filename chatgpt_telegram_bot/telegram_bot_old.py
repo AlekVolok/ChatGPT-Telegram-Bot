@@ -60,8 +60,8 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-openai.api_key = "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"
-telegram_token = "6247581173:AAEis2tQ2YXO5oTN_quIMIM48ITujWTMX0Q"
+openai.api_key = os.getenv("OPENAI_API_KEY")
+telegram_token = os.getenv("TELEGRAM_ASSISTANT")
 
 allowed_telegram_usernames = []
 
