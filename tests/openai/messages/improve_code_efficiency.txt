@@ -1,0 +1,18 @@
+You will be provided with a piece of Python code, and your task is to provide ideas for efficiency improvements.
+code:
+```
+from typing import List
+            
+            
+def has_sum_k(nums: List[int], k: int) -> bool:
+    """
+    Returns True if there are two distinct elements in nums such that their sum 
+    is equal to k, and otherwise returns False.
+    """
+    n = len(nums)
+    for i in range(n):
+        for j in range(i+1, n):
+            if nums[i] + nums[j] == k:
+                return True
+    return False
+```
