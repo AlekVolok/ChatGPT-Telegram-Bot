@@ -20,7 +20,7 @@ import tempfile
 import traceback
 from pathlib import Path
 from datetime import datetime
-import database
+import chatgpt_telegram_bot.database as database
 
 from config import (CHAT_MODES, HELP_MESSAGE, MODELS_INFO, TELEGRAM_TOKEN)
 from chatgpt_telegram_bot.chat_gpt import ChatGPT
