@@ -58,7 +58,7 @@ MODELS_INFO = {
     "gpt-3.5-turbo": {
         "type": "chat_completion",
         "name": "ChatGPT",
-        "description": "ChatGPT самая популярная модель ИИ на текущий день",
+        "description": "ChatGPT",
         "price_per_1000_input_tokens": 0.002,
         "price_per_1000_output_tokens": 0.002,
         "scores": {
@@ -70,7 +70,7 @@ MODELS_INFO = {
     "gpt-4": {
         "type": "chat_completion",
         "name": "gpt-4",
-        "description": "GPT-4 наиболее продвинутый в мире ИИ. Он относительно медленный и дорогой. Используйте только в очень сложных задачах",
+        "description": "GPT-4",
         "price_per_1000_input_tokens": 0.03,
         "price_per_1000_output_tokens": 0.06,
         "scores": {
@@ -81,6 +81,7 @@ MODELS_INFO = {
     },
     "whisper": {
         "type": "audio",
+        "name": "whisper",
         "price_per_1_min": 0.006
     }
 }

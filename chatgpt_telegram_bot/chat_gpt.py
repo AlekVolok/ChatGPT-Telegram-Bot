@@ -1,8 +1,13 @@
 import openai
+import tiktoken
+from chatgpt_telegram_bot.config import (
+    CHAT_MODES,
+    MODELS_INFO, 
+    OPENAI_COMPLETION_OPTIONS)
 
 class ChatGPT:
     def __init__(self, model="gpt-3.5-turbo"):
-        assert model in {"gpt-3.5-turbo", "gpt-4-0613"}, f"Unknown model: {model}"
+        assert model in MODELS_INFO.keys(), f"Unknown model: {model}"
         self.model = model
 
     async def send_message(self, message, dialog_messages=[], chat_mode="assistant"):
@@ -13,7 +18,7 @@ class ChatGPT:
         answer = None
         while answer is None:
             try:
-                if self.model in {"gpt-3.5-turbo", "gpt-4-0613"}:
+                if self.model in MODELS_INFO.keys():
                     messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
                     r = await openai.ChatCompletion.acreate(
                         model=self.model,
@@ -43,7 +48,7 @@ class ChatGPT:
         answer = None
         while answer is None:
             try:
-                if self.model in {"gpt-3.5-turbo", "gpt-4-0613"}:
+                if self.model in MODELS_INFO.keys():
                     messages = self._generate_prompt_messages(message, dialog_messages, chat_mode)
                     r_gen = await openai.ChatCompletion.acreate(
                         model=self.model,
@@ -129,7 +134,7 @@ class ChatGPT:
         if model == "gpt-3.5-turbo":
             tokens_per_message = 4  # every message follows <im_start>{role/name}\n{content}<im_end>\n
             tokens_per_name = -1  # if there's a name, the role is omitted
-        elif model == "gpt-4-0613":
+        elif model == "gpt-4":
             tokens_per_message = 3
             tokens_per_name = 1
         else:

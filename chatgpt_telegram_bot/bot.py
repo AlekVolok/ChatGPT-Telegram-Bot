@@ -22,7 +22,11 @@ from pathlib import Path
 from datetime import datetime
 import chatgpt_telegram_bot.database as database
 
-from config import (CHAT_MODES, HELP_MESSAGE, MODELS_INFO, TELEGRAM_TOKEN)
+from chatgpt_telegram_bot.config import (
+    CHAT_MODES, 
+    HELP_MESSAGE, 
+    MODELS_INFO, 
+    TELEGRAM_TOKEN)
 from chatgpt_telegram_bot.chat_gpt import ChatGPT
 
 import openai
@@ -255,7 +259,7 @@ async def voice_message_handle(update: Update, context: CallbackContext):
     await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
     # update n_transcribed_seconds
-    # db.set_user_attribute(user_id, "n_transcribed_seconds", voice.duration + db.get_user_attribute(user_id, "n_transcribed_seconds"))
+    db.set_user_attribute(user_id, "n_transcribed_seconds", voice.duration + db.get_user_attribute(user_id, "n_transcribed_seconds"))
 
     await message_handle(update, context, message=transcribed_text)
 
@@ -313,7 +317,7 @@ def get_settings_menu(user_id: int):
 
     # buttons to choose models
     buttons = []
-    for model_key in ["gpt-3.5-turbo", "gpt-4-0613"]:
+    for model_key in MODELS_INFO.keys():
         title = MODELS_INFO[model_key]["name"]
         if model_key == current_model:
             title = "✅ " + title
