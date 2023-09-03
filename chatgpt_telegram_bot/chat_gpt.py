@@ -26,8 +26,8 @@ class ChatGPT:
                         **OPENAI_COMPLETION_OPTIONS
                     )
                     answer = r.choices[0].message["content"]
-
-                answer = self._postprocess_answer(answer)
+                print("current model is :", self.model)
+                answer = self._postprocess_answer(self.model + answer)
                 n_input_tokens, n_output_tokens = r.usage.prompt_tokens, r.usage.completion_tokens
             except openai.error.InvalidRequestError as e:  # too many tokens
                 if len(dialog_messages) == 0:
@@ -57,7 +57,7 @@ class ChatGPT:
                         **OPENAI_COMPLETION_OPTIONS
                     )
 
-                    answer = ""
+                    answer = f"{self.model} :"
                     async for r_item in r_gen:
                         delta = r_item.choices[0].delta
                         if "content" in delta:
@@ -103,8 +103,8 @@ class ChatGPT:
         if len(dialog_messages) > 0:
             prompt += "Chat:\n"
             for dialog_message in dialog_messages:
-                prompt += f"User: {dialog_message["user"]}\n"
-                prompt += f"Assistant: {dialog_message["bot"]}\n"
+                prompt += f"User: {dialog_message['user']}\n"
+                prompt += f"Assistant: {dialog_message['bot']}\n"
 
         # current message
         prompt += f"User: {message}\n"

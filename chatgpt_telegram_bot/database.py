@@ -69,6 +69,7 @@ class ChatGptDatabase:
             }
 
             with self._get_user_file(user_id).open("w") as f:
+                f.truncate()
                 json.dump(user_data, f)
 
     def start_new_dialog(self, user_id: int):
@@ -77,13 +78,17 @@ class ChatGptDatabase:
 
         with self._get_user_file(user_id).open("r+") as f:
             user_data = json.load(f)
+            
             user_data["dialogs"][dialog_id] = {
                 "chat_mode": user_data["current_chat_mode"],
                 "start_time": datetime.now().isoformat(),
                 "model": user_data["current_model"]
             }
             user_data["current_dialog_id"] = dialog_id
+            
+            
             f.seek(0)
+            f.truncate()
             json.dump(user_data, f)
         f.close()
 
@@ -106,6 +111,7 @@ class ChatGptDatabase:
                 user_data = json.load(f)
                 user_data[key] = value
                 f.seek(0)
+                f.truncate()
                 json.dump(user_data, f)
             f.close()
 
@@ -129,5 +135,6 @@ class ChatGptDatabase:
                 dialog_id = user_data["current_dialog_id"]
             user_data["dialog_messages"][dialog_id] = dialog_messages
             f.seek(0)
+            f.truncate()
             json.dump(user_data, f)
         f.close()

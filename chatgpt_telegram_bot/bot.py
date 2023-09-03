@@ -70,7 +70,7 @@ async def register_user_if_not_exists(update: Update, context: CallbackContext, 
         user_semaphores[user.id] = asyncio.Semaphore(1)
 
     if db.get_user_attribute(user.id, "current_model") is None:
-        db.set_user_attribute(user.id, "current_model", "gpt-3.5-turbo")
+        await db.set_user_attribute(user.id, "current_model", "gpt-3.5-turbo")
 
     # back compatibility for n_used_tokens field
     n_used_tokens = db.get_user_attribute(user.id, "n_used_tokens")
@@ -81,17 +81,17 @@ async def register_user_if_not_exists(update: Update, context: CallbackContext, 
                 "n_output_tokens": n_used_tokens
             }
         }
-        db.set_user_attribute(user.id, "n_used_tokens", new_n_used_tokens)
+        await db.set_user_attribute(user.id, "n_used_tokens", new_n_used_tokens)
 
     # voice message transcription
     if db.get_user_attribute(user.id, "n_transcribed_seconds") is None:
-        db.set_user_attribute(user.id, "n_transcribed_seconds", 0.0)
+        await db.set_user_attribute(user.id, "n_transcribed_seconds", 0.0)
 
 async def start_handle(update: Update, context: CallbackContext):
     await register_user_if_not_exists(update, context, update.message.from_user)
     user_id = update.message.from_user.id
 
-    db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
+    await db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
     db.start_new_dialog(user_id)
 
     reply_text = "Hi! I'm <b>ChatGPT</b> bot implemented with GPT-3.5 OpenAI API 🤖\n\n"
@@ -106,7 +106,7 @@ async def retry_handle(update: Update, context: CallbackContext):
     if await is_previous_message_not_answered_yet(update, context): return
 
     user_id = update.message.from_user.id
-    db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
+    await db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
 
     dialog_messages = db.get_dialog_messages(user_id, dialog_id=None)
     if len(dialog_messages) == 0:
@@ -135,8 +135,8 @@ async def message_handle(update: Update, context: CallbackContext, message=None,
         if use_new_dialog_timeout:
             if (datetime.now() - datetime.fromisoformat(db.get_user_attribute(user_id, "last_interaction"))).seconds > 2000 and len(db.get_dialog_messages(user_id)) > 0:
                 db.start_new_dialog(user_id)
-                await update.message.reply_text(f"Starting new dialog due to timeout (<b>{CHAT_MODES[chat_mode]["name"]}</b> mode) ✅", parse_mode=ParseMode.HTML)
-        db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
+                await update.message.reply_text(f"Starting new dialog due to timeout (<b>{CHAT_MODES[chat_mode]['name']}</b> mode) ✅", parse_mode=ParseMode.HTML)
+        await db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
 
         try:
             # send placeholder message to user
@@ -236,7 +236,7 @@ async def voice_message_handle(update: Update, context: CallbackContext):
     if await is_previous_message_not_answered_yet(update, context): return
 
     user_id = update.message.from_user.id
-    db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
+    await db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
 
     voice = update.message.voice
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -259,7 +259,7 @@ async def voice_message_handle(update: Update, context: CallbackContext):
     await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
     # update n_transcribed_seconds
-    db.set_user_attribute(user_id, "n_transcribed_seconds", voice.duration + db.get_user_attribute(user_id, "n_transcribed_seconds"))
+    await db.set_user_attribute(user_id, "n_transcribed_seconds", voice.duration + db.get_user_attribute(user_id, "n_transcribed_seconds"))
 
     await message_handle(update, context, message=transcribed_text)
 
@@ -268,20 +268,20 @@ async def new_dialog_handle(update: Update, context: CallbackContext):
     if await is_previous_message_not_answered_yet(update, context): return
 
     user_id = update.message.from_user.id
-    db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
+    await db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
 
     db.start_new_dialog(user_id)
     await update.message.reply_text("Starting new dialog ✅")
 
     chat_mode = db.get_user_attribute(user_id, "current_chat_mode")
-    await update.message.reply_text(f"{CHAT_MODES[chat_mode]["welcome_message"]}", parse_mode=ParseMode.HTML)
+    await update.message.reply_text(f"{CHAT_MODES[chat_mode]['welcome_message']}", parse_mode=ParseMode.HTML)
 
 async def show_chat_modes_handle(update: Update, context: CallbackContext):
     await register_user_if_not_exists(update, context, update.message.from_user)
     if await is_previous_message_not_answered_yet(update, context): return
 
     user_id = update.message.from_user.id
-    db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
+    await db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
 
     keyboard = []
     for chat_mode, chat_mode_dict in CHAT_MODES.items():
@@ -299,10 +299,10 @@ async def set_chat_mode_handle(update: Update, context: CallbackContext):
 
     chat_mode = query.data.split("|")[1]
 
-    db.set_user_attribute(user_id, "current_chat_mode", chat_mode)
+    await db.set_user_attribute(user_id, "current_chat_mode", chat_mode)
     db.start_new_dialog(user_id)
 
-    await query.edit_message_text(f"{CHAT_MODES[chat_mode]["welcome_message"]}", parse_mode=ParseMode.HTML)
+    await query.edit_message_text(f"{CHAT_MODES[chat_mode]['welcome_message']}", parse_mode=ParseMode.HTML)
 
 def get_settings_menu(user_id: int):
     current_model = db.get_user_attribute(user_id, "current_model")
@@ -334,7 +334,7 @@ async def settings_handle(update: Update, context: CallbackContext):
     if await is_previous_message_not_answered_yet(update, context): return
 
     user_id = update.message.from_user.id
-    db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
+    await db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
 
     text, reply_markup = get_settings_menu(user_id)
     await update.message.reply_text(text, reply_markup=reply_markup, parse_mode=ParseMode.HTML)
@@ -347,7 +347,8 @@ async def set_settings_handle(update: Update, context: CallbackContext):
     await query.answer()
 
     _, model_key = query.data.split("|")
-    db.set_user_attribute(user_id, "current_model", model_key)
+    print(model_key)
+    await db.set_user_attribute(user_id, "current_model", model_key)
     db.start_new_dialog(user_id)
 
     text, reply_markup = get_settings_menu(user_id)
@@ -360,7 +361,7 @@ async def set_settings_handle(update: Update, context: CallbackContext):
 async def help_handle(update: Update, context: CallbackContext):
     await register_user_if_not_exists(update, context, update.message.from_user)
     user_id = update.message.from_user.id
-    db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
+    await db.set_user_attribute(user_id, "last_interaction", datetime.now().isoformat())
     await update.message.reply_text(HELP_MESSAGE, parse_mode=ParseMode.HTML)
 
 async def edited_message_handle(update: Update, context: CallbackContext):
