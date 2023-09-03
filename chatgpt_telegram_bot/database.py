@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, Optional
 import uuid
 import json
+import asyncio
 
 class ChatGptDatabase:
     """
@@ -15,6 +16,7 @@ class ChatGptDatabase:
         """
         self.data_dir = Path("user_database")
         self.data_dir.mkdir(exist_ok=True)
+        self.lock = asyncio.Lock()
 
     def _get_user_file(self, user_id: int):
         """
@@ -83,8 +85,10 @@ class ChatGptDatabase:
             user_data['current_dialog_id'] = dialog_id
             f.seek(0)
             json.dump(user_data, f)
+        f.close()
 
         return dialog_id
+
 
     def get_user_attribute(self, user_id: int, key: str):
         self.check_if_user_exists(user_id, raise_exception=True)
@@ -93,14 +97,18 @@ class ChatGptDatabase:
             user_data = json.load(f)
             return user_data.get(key)
 
-    def set_user_attribute(self, user_id: int, key: str, value: Any):
-        self.check_if_user_exists(user_id, raise_exception=True)
 
-        with self._get_user_file(user_id).open('r+') as f:
-            user_data = json.load(f)
-            user_data[key] = value
-            f.seek(0)
-            json.dump(user_data, f)
+    async def set_user_attribute(self, user_id: int, key: str, value: Any):
+        async with self.lock:
+            self.check_if_user_exists(user_id, raise_exception=True)
+            
+            with self._get_user_file(user_id).open('r+') as f:
+                user_data = json.load(f)
+                user_data[key] = value
+                f.seek(0)
+                json.dump(user_data, f)
+            f.close()
+
 
     def get_dialog_messages(self, user_id: int, dialog_id: Optional[str] = None):
         self.check_if_user_exists(user_id, raise_exception=True)
@@ -110,6 +118,7 @@ class ChatGptDatabase:
             if dialog_id is None:
                 dialog_id = user_data['current_dialog_id']
             return user_data['dialog_messages'].get(dialog_id, [])
+        
 
     def set_dialog_messages(self, user_id: int, dialog_messages: list, dialog_id: Optional[str] = None):
         self.check_if_user_exists(user_id, raise_exception=True)
@@ -121,3 +130,4 @@ class ChatGptDatabase:
             user_data['dialog_messages'][dialog_id] = dialog_messages
             f.seek(0)
             json.dump(user_data, f)
+        f.close()
