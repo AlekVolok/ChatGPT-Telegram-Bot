@@ -103,8 +103,8 @@ class ChatGPT:
         if len(dialog_messages) > 0:
             prompt += "Chat:\n"
             for dialog_message in dialog_messages:
-                prompt += f"User: {dialog_message['user']}\n"
-                prompt += f"Assistant: {dialog_message['bot']}\n"
+                prompt += f"User: {dialog_message["user"]}\n"
+                prompt += f"Assistant: {dialog_message["bot"]}\n"
 
         # current message
         prompt += f"User: {message}\n"

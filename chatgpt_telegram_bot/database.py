@@ -53,36 +53,36 @@ class ChatGptDatabase:
     ):
         if not self.check_if_user_exists(user_id):
             user_data = {
-                'id': user_id,
-                'chat_id': chat_id,
-                'username': username,
-                'first_name': first_name,
-                'last_name': last_name,
-                'last_interaction': datetime.now().isoformat(),
-                'first_seen': datetime.now().isoformat(),
-                'current_dialog_id': None,
-                'current_chat_mode': "assistant",
-                'current_model': "gpt-3.5-turbo",
-                'dialogs': {},
-                'user_tokens': {},
-                'dialog_messages': {}
+                "id": user_id,
+                "chat_id": chat_id,
+                "username": username,
+                "first_name": first_name,
+                "last_name": last_name,
+                "last_interaction": datetime.now().isoformat(),
+                "first_seen": datetime.now().isoformat(),
+                "current_dialog_id": None,
+                "current_chat_mode": "assistant",
+                "current_model": "gpt-3.5-turbo",
+                "dialogs": {},
+                "user_tokens": {},
+                "dialog_messages": {}
             }
 
-            with self._get_user_file(user_id).open('w') as f:
+            with self._get_user_file(user_id).open("w") as f:
                 json.dump(user_data, f)
 
     def start_new_dialog(self, user_id: int):
         self.check_if_user_exists(user_id, raise_exception=True)
         dialog_id = str(uuid.uuid4())
 
-        with self._get_user_file(user_id).open('r+') as f:
+        with self._get_user_file(user_id).open("r+") as f:
             user_data = json.load(f)
-            user_data['dialogs'][dialog_id] = {
-                'chat_mode': user_data['current_chat_mode'],
-                'start_time': datetime.now().isoformat(),
-                'model': user_data['current_model']
+            user_data["dialogs"][dialog_id] = {
+                "chat_mode": user_data["current_chat_mode"],
+                "start_time": datetime.now().isoformat(),
+                "model": user_data["current_model"]
             }
-            user_data['current_dialog_id'] = dialog_id
+            user_data["current_dialog_id"] = dialog_id
             f.seek(0)
             json.dump(user_data, f)
         f.close()
@@ -102,7 +102,7 @@ class ChatGptDatabase:
         async with self.lock:
             self.check_if_user_exists(user_id, raise_exception=True)
             
-            with self._get_user_file(user_id).open('r+') as f:
+            with self._get_user_file(user_id).open("r+") as f:
                 user_data = json.load(f)
                 user_data[key] = value
                 f.seek(0)
@@ -116,18 +116,18 @@ class ChatGptDatabase:
         with self._get_user_file(user_id).open() as f:
             user_data = json.load(f)
             if dialog_id is None:
-                dialog_id = user_data['current_dialog_id']
-            return user_data['dialog_messages'].get(dialog_id, [])
+                dialog_id = user_data["current_dialog_id"]
+            return user_data["dialog_messages"].get(dialog_id, [])
         
 
     def set_dialog_messages(self, user_id: int, dialog_messages: list, dialog_id: Optional[str] = None):
         self.check_if_user_exists(user_id, raise_exception=True)
 
-        with self._get_user_file(user_id).open('r+') as f:
+        with self._get_user_file(user_id).open("r+") as f:
             user_data = json.load(f)
             if dialog_id is None:
-                dialog_id = user_data['current_dialog_id']
-            user_data['dialog_messages'][dialog_id] = dialog_messages
+                dialog_id = user_data["current_dialog_id"]
+            user_data["dialog_messages"][dialog_id] = dialog_messages
             f.seek(0)
             json.dump(user_data, f)
         f.close()
